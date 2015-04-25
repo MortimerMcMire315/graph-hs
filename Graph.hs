@@ -38,4 +38,16 @@ modifyEdgeG (Graph vs es@(x:xs)) toChange f
                         Nothing -> Nothing
                         Just (Graph vs es) -> Just (Graph vs (x:es))
 
+adjacencyList :: (Eq v) => Graph v e -> v -> [v]
+adjacencyList g v = adjacencyList' (edges g) v []
+
+adjacencyList' :: (Eq v) => [Edge v e] -> v -> [v] -> [v]
+adjacencyList' [] _ vls = vls
+adjacencyList' (e:es) v vls
+    | firstVertex e == v = adjacencyList' es v (secondVertex e : vls)
+    | secondVertex e == v = adjacencyList' es v (firstVertex e : vls)
+    | otherwise = adjacencyList' es v vls
+    where secondVertex edge = (snd . fst) edge
+          firstVertex edge = (fst . fst) edge
+
 main = putStrLn $ show g1
