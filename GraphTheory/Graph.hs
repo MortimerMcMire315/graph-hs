@@ -11,6 +11,9 @@ dwGraph v e = Graph {vertices = v, edges = e, directed = True,  weighted = True}
 
 
 {-----====== Graph building ======-----}
+
+-- Input: Graph, list of edge weights.
+-- Output: Maybe the graph with modified weights.
 assignWeights ::  Graph v e -> [e] -> Maybe (Graph v e)
 assignWeights g weightList@(x:xs)
     | length e /= length weightList = Nothing
@@ -18,6 +21,9 @@ assignWeights g weightList@(x:xs)
     where v = vertices g
           e = edges g
 
+-- Input: The graph and an edge
+-- Output: After checking (in O(n)!) to ensure that the edge isn't already present, 
+--         return (maybe) the graph with the edge added.
 addEdge :: (Eq v) => Graph v e -> Edge v e -> Maybe (Graph v e)
 addEdge g e@((v1,v2),_)
     | not (elem v1 vs) || not (elem v2 vs) = Nothing
@@ -30,9 +36,15 @@ addEdge g e@((v1,v2),_)
     where vs = vertices g
           es = edges g
 
+-- Input: The graph and an edge
+-- Output: The graph with the edge added in O(1). Duplicate edges could occur
+--         as a result of using this function.
 addEdgeUnsafe :: (Eq v) => Graph v e -> Edge v e -> Graph v e
 addEdgeUnsafe g e = g {edges = e:(edges g)}
 
+
+-- O(n): Remove an edge if it exists, and maybe return the graph. TODO:
+-- consider making this "unsafe"; just always return a graph.
 removeEdge :: (Eq v) => Graph v e -> (v,v) -> Maybe (Graph v e)
 removeEdge g e
     | null es = Nothing
@@ -48,7 +60,8 @@ removeEdge g e
 
 --  Generic edge modification.
 --  Input: Graph, edge, function which transforms an edge
---  Output: Maybe a new graph.
+--  Output: If the edge exists, modify it with the given function and maybe
+--          return the resulting graph.
 modifyEdge :: (Eq v, Eq e) => Graph v e -> (v,v) -> (Edge v e -> Edge v e) -> Maybe (Graph v e)
 modifyEdge g toChange f
     | null es = Nothing
@@ -66,6 +79,8 @@ setEdgeWeight g e wt' = modifyEdge g e (\x -> setEdgeWeight' x wt')
     where setEdgeWeight' (vs,w) w' = (vs,w')
 
 {-----====== Vertex functions ======-----}
+
+-- Create an adjacency list for a given vertex in O(|E|).
 adjacencyList :: (Eq v) => Graph v e -> v -> [v]
 adjacencyList g v = adjacencyList' (edges g) v []
 
