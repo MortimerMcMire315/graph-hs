@@ -22,7 +22,7 @@ assignWeights g weightList@(x:xs)
           e = edges g
 
 -- Input: The graph and an edge
--- Output: After checking (in O(n)!) to ensure that the edge isn't already present, 
+-- Output: After checking (in O(n) time) to ensure that the edge isn't already present, 
 --         return (maybe) the graph with the edge added.
 addEdge :: (Eq v) => Graph v e -> Edge v e -> Maybe (Graph v e)
 addEdge g e@((v1,v2),_)
