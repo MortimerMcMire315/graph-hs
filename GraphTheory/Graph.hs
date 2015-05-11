@@ -1,6 +1,4 @@
-module GraphTheory.Graph {--(Graph(..),Edge,
-             assignWeights,addEdge,removeEdge,setEdgeWeight,modifyEdge,
-             adjacencyList)--} where
+module GraphTheory.Graph  where
 
 {------===== Data types =====--------}
 type Edge v e = ((v,v),e)
