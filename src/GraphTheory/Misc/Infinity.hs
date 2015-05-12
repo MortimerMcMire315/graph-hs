@@ -19,8 +19,7 @@ instance Num a => Num (Infinitable a) where
     (Regular a) + NegativeInfinity = NegativeInfinity
     NegativeInfinity + NegativeInfinity = NegativeInfinity
     NegativeInfinity + (Regular a) = NegativeInfinity
-    PositiveInfinity + NegativeInfinity = PositiveInfinity
-    _ + _ = error "Attempted to add two infinite values."
+    _ + _ = error "Attempted to add ∞ + -∞."
 
     (Regular a) - (Regular b) = Regular (a - b)
     _ - _ = error "Attempted to subtract two infinite values."
