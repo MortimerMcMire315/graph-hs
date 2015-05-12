@@ -92,4 +92,6 @@ adjacencyList' (e:es) v vls
     | otherwise = adjacencyList' es v vls
     where secondVertex edge = (snd . fst) edge
           firstVertex edge = (fst . fst) edge
---}
+
+adjacencyMatrix :: Graph v e -> HashMap (v,v) e
+adjacencyMatrix g = map [(v1,v2) | v1 <- vertices g, v2 <- vertices g]
