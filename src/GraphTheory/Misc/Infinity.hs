@@ -1,4 +1,4 @@
-module Misc.Infinity where
+module GraphTheory.Misc.Infinity where
 
 data Infinitable a = Regular a | NegativeInfinity | PositiveInfinity deriving Eq
 

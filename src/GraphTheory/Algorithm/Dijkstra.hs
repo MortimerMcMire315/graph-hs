@@ -1,9 +1,9 @@
-module Dijkstra where
+module GraphTheory.Algorithm.Dijkstra where
 
 import Data.Maybe (fromJust)
 import Data.List ((\\))
 import qualified Data.Map as M
-import Misc.Infinity (Infinitable (..))
+import GraphTheory.Misc.Infinity (Infinitable (..))
 import GraphTheory.Graph (weightMatrix, vertices, Graph)
 
 showDijkstra g u = do

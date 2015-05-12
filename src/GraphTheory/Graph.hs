@@ -1,5 +1,5 @@
 module GraphTheory.Graph  where
-import Misc.Infinity
+import GraphTheory.Misc.Infinity
 import qualified Data.Map as M
 import Text.Printf (printf)
 import Data.Maybe (fromJust)
