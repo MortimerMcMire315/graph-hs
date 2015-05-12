@@ -1,6 +1,6 @@
 module Misc.Infinity where
 
-data Infinitable a = Regular a | NegativeInfinity | PositiveInfinity deriving (Eq, Show)
+data Infinitable a = Regular a | NegativeInfinity | PositiveInfinity deriving Eq
 
 instance Ord a => Ord (Infinitable a) where
     compare NegativeInfinity NegativeInfinity = EQ
@@ -39,3 +39,8 @@ instance Num a => Num (Infinitable a) where
     abs (Regular a) = Regular (abs a)
     abs PositiveInfinity = PositiveInfinity
     abs NegativeInfinity = PositiveInfinity
+
+instance Show a => Show (Infinitable a) where
+    show (Regular a) = show a
+    show PositiveInfinity = "∞"
+    show NegativeInfinity = "-∞"

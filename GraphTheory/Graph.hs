@@ -1,6 +1,8 @@
 module GraphTheory.Graph  where
 import Misc.Infinity
 import qualified Data.Map as M
+import Text.Printf (printf)
+import Data.Maybe (fromJust)
 
 {------===== Data types =====--------}
 type Edge v e = ((v,v),e)
@@ -80,6 +82,12 @@ setEdgeWeight :: (Eq v, Eq e) => Graph v e -> (v,v) -> e -> Maybe (Graph v e)
 setEdgeWeight g e wt' = modifyEdge g e (\x -> setEdgeWeight' x wt')
     where setEdgeWeight' (vs,w) w' = (vs,w')
 
+
+weightMatrix :: (Num e,Ord v) => Graph v (Infinitable e) -> M.Map (v,v) (Infinitable e)
+weightMatrix g = foldl (\m e -> M.update (\_ -> Just $ snd e) (fst e) m) infMatrix $ allEdges g
+    where infMatrix = M.fromList [((v1,v2), if v1 == v2 then Regular 0 else PositiveInfinity) | v1 <- vertices g, v2 <- vertices g]
+
+
 {-----====== Vertex functions ======-----}
 
 -- Create an adjacency list for a given vertex in O(|E|).
@@ -104,6 +112,17 @@ reverseEdges g = map reverseEdge $ edges g
 allEdges :: Graph v e -> [((v,v),e)]
 allEdges g = if (directed g) then edges g else (edges g) ++ (reverseEdges g)
 
-weightMatrix :: (Num e,Ord v) => Graph v (Infinitable e) -> M.Map (v,v) (Infinitable e)
-weightMatrix g = foldl (\m e -> M.update (\_ -> Just $ snd e) (fst e) m) infMatrix $ allEdges g
-    where infMatrix = M.fromList [((v1,v2), if v1 == v2 then Regular 0 else PositiveInfinity) | v1 <- vertices g, v2 <- vertices g]
+
+{-----====== Pretty-printing ======-----}
+
+showWeightMatrix :: (Num e,Ord v,Show v, Show e) => Graph v (Infinitable e) -> IO ()
+showWeightMatrix g = do
+    putStr "   "
+    mapM_ (\x -> printf "%-3v" $ show x) (vertices g)
+    mapM_ (\x -> do putStr "\n" >> (printf "%-3v" (show x)) >> printMatrixRow g x ) (vertices g)
+    putStr "\n"
+
+printMatrixRow :: (Num e, Ord v, Show v, Show e) => Graph v (Infinitable e) -> v -> IO ()
+printMatrixRow g v = mapM_ (\v2 -> printf "%-3v" $ show $ w v v2) (vertices g)
+    where wts = weightMatrix g
+          w u1 u2 = fromJust $ M.lookup (u1,u2) wts
