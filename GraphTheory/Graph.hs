@@ -1,4 +1,6 @@
 module GraphTheory.Graph  where
+import Misc.Infinity
+import qualified Data.Map as M
 
 {------===== Data types =====--------}
 type Edge v e = ((v,v),e)
@@ -93,5 +95,15 @@ adjacencyList' (e:es) v vls
     where secondVertex edge = (snd . fst) edge
           firstVertex edge = (fst . fst) edge
 
-adjacencyMatrix :: Graph v e -> HashMap (v,v) e
-adjacencyMatrix g = map [(v1,v2) | v1 <- vertices g, v2 <- vertices g]
+reverseEdge :: ((a,a),b) -> ((a,a),b)
+reverseEdge ((v1,v2),x) = ((v2,v1),x)
+
+reverseEdges :: Graph v e -> [((v,v),e)]
+reverseEdges g = map reverseEdge $ edges g
+
+allEdges :: Graph v e -> [((v,v),e)]
+allEdges g = if (directed g) then edges g else (edges g) ++ (reverseEdges g)
+
+weightMatrix :: (Num e,Ord v) => Graph v (Infinitable e) -> M.Map (v,v) (Infinitable e)
+weightMatrix g = foldl (\m e -> M.update (\_ -> Just $ snd e) (fst e) m) infMatrix $ allEdges g
+    where infMatrix = M.fromList [((v1,v2), if v1 == v2 then Regular 0 else PositiveInfinity) | v1 <- vertices g, v2 <- vertices g]

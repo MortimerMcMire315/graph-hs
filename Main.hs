@@ -4,26 +4,35 @@ import GraphTheory.Graph
 import GraphTheory.SpecialGraphs
 import qualified Data.Map as M
 import Data.Maybe (fromJust)
+import Data.List ((\\))
+import Misc.Infinity (Infinitable (..))
+import Debug.Trace (trace)
 
-g1 :: Graph Integer Integer
-g1 = uwGraph [1, 2, 3, 4, 5, 6] [((1,2),0), ((3,2),0),((5,3),6),((4,1),10),((5,6),1)]
+g1 :: Graph Integer (Infinitable Integer)
+g1 = dwGraph [0, 1, 2, 3, 4] [((0,1),1),((0,2),3),((0,4),6),((1,2),1),((1,3),3),((2,0),1),((2,3),1),((2,1),2),((3,0),3),((3,4),2),((4,3),1)]
 
---dijkstra :: (Integral e, Bounded e, Ord v) => Graph v e -> [(v,e)]
---dijkstra g = dijkstra' g (startTable g) [u]
---    where u = head $ vertices g
---          startTable = map (\v -> ) $ vertices g
---          adj vert = fromJust $ M.lookup vert fullAdjacency 
---          fullAdjacency = adjacencyListMap g -- This will only be calculated once
---
---adjacencyListMap :: (Ord v, Eq v) => Graph v e -> M.Map v [v]
---adjacencyListMap g = M.fromList $ [(v, adjacencyList g v) | v <- vertices g ]
---
---infTable :: (Integral e, Bounded e, Ord v) => Graph v e -> M.Map v e
---infTable g = foldl (\m v -> M.insert v maxBound m) M.empty (vertices g)
---
---dijkstra' :: (Integral e, Ord v) => Graph v e -> M.Map v e -> [v] -> [(v,e)]
---dijkstra' g l t
---    | M.size l == length (vertices g) = M.toList l
---    | otherwise = [(head $ vertices g, snd . head $ edges g)]
---    where 
+dijkstra :: (Ord v, Ord e, Num e, Show v, Show e) => Graph v (Infinitable e) -> v -> [(v, Infinitable e)]
+dijkstra g u = dijkstra' g wt l [u]
+    where l = M.update (\_ -> Just $ Regular 0) u $ M.fromList $ map func vs
+          func vert = (vert, fromJust $ M.lookup (u,vert) wt)
+          wt = weightMatrix g
+          vs = vertices g
+
+
+dijkstra' :: (Ord v, Ord e, Num e, Show v, Show e) => Graph v e -> M.Map (v,v) e -> M.Map v e -> [v] -> [(v,e)]
+dijkstra' g wt lMap t
+    | length t == length vs = M.toList newL
+    | otherwise = dijkstra' g wt newL (v':t)
+    where vs = vertices g
+          comparev' tuple1 tuple2 = if (snd tuple1 < snd tuple2) then tuple1 else tuple2
+          newL = foldl updateL lMap vNotInT
+          updateL lMap' vert = if (l' vert) > ((l' v') + (w (v',vert)))
+                               then M.update (\_ -> Just $ (l' v') + (w (v',vert))) vert lMap'
+                               else lMap'
+                where l' vert = fromJust $ M.lookup vert lMap'
+          v' = fst $ foldl1 comparev' $ map (\v -> (v,l v)) vNotInT
+          l vert = fromJust $ M.lookup vert lMap
+          w edge = fromJust $ M.lookup edge wt
+          vNotInT = vs \\ t
+
 main = putStrLn $ show g1
