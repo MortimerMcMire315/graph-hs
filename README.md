@@ -1,7 +1,7 @@
 graph-hs
 ========
 
-### A purely functional library for dealing with graph theory problems in Haskell.
+A purely functional library for dealing with graph theory problems in Haskell.
 
 
 Installation
