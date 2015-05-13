@@ -30,13 +30,13 @@ assignWeights g weightList@(x:xs)
 --         return (maybe) the graph with the edge added.
 addEdge :: (Eq v) => Graph v e -> Edge v e -> Maybe (Graph v e)
 addEdge g e@((v1,v2),_)
-    | not (elem v1 vs) || not (elem v2 vs) = Nothing
-    | directed g = if (elem (v1,v2) (map fst es)) 
+    | notElem v1 vs || notElem v2 vs = Nothing
+    | directed g = if elem (v1,v2) (map fst es)
                    then Just g 
-                   else Just $ g {edges = (e:es)}
-    | (not . directed) g = if (elem (v1,v2) (map fst es)) || (elem (v2,v1) (map fst es)) 
+                   else Just $ g {edges = e:es}
+    | (not . directed) g = if elem (v1,v2) (map fst es) || elem (v2,v1) (map fst es)
                            then Just g
-                           else Just $ g {edges = (e:es)}
+                           else Just $ g {edges = e:es}
     where vs = vertices g
           es = edges g
 
@@ -44,7 +44,7 @@ addEdge g e@((v1,v2),_)
 -- Output: The graph with the edge added in O(1). Duplicate edges could occur
 --         as a result of using this function.
 addEdgeUnsafe :: (Eq v) => Graph v e -> Edge v e -> Graph v e
-addEdgeUnsafe g e = g {edges = e:(edges g)}
+addEdgeUnsafe g e = g {edges = e : edges g}
 
 
 -- O(n): Remove an edge if it exists, and maybe return the graph. TODO:
@@ -55,7 +55,7 @@ removeEdge g e
     | fst x == e = Just $ g {edges = xs}
     | (not . directed) g && (v2,v1) == e = Just $ g {edges = xs}
     | otherwise = removeEdge (g {edges=xs}) e >>= 
-                        (\h -> return $ h {edges = x:(edges h)})
+                        (\h -> return $ h {edges = x : edges h})
     where es = edges g
           (x:xs) = es
           (v1,v2) = fst x
@@ -69,18 +69,18 @@ removeEdge g e
 modifyEdge :: (Eq v, Eq e) => Graph v e -> (v,v) -> (Edge v e -> Edge v e) -> Maybe (Graph v e)
 modifyEdge g toChange f
     | null es = Nothing
-    | fst x == toChange = Just $ g {edges = (f x):xs}
-    | (not . directed) g && (v2,v1) == toChange = Just $ g {edges = (f x):xs}
+    | fst x == toChange = Just $ g {edges = f x : xs}
+    | (not . directed) g && (v2,v1) == toChange = Just $ g {edges = f x : xs}
     | otherwise = modifyEdge (g {edges=xs}) toChange f >>= 
-                            (\g2 -> return $ g2 {edges = x:(edges g2)})
+                            (\g2 -> return $ g2 {edges = x : edges g2})
     where es = edges g
           vs = vertices g
           (x:xs) = es
           (v1,v2) = fst x
         
 setEdgeWeight :: (Eq v, Eq e) => Graph v e -> (v,v) -> e -> Maybe (Graph v e)
-setEdgeWeight g e wt' = modifyEdge g e (\x -> setEdgeWeight' x wt')
-    where setEdgeWeight' (vs,w) w' = (vs,w')
+setEdgeWeight g e wt' = modifyEdge g e $ setEdgeWeight' wt'
+    where setEdgeWeight' w' (vs,w) = (vs,w')
 
 
 weightMatrix :: (Num e,Ord v) => Graph v (Infinitable e) -> M.Map (v,v) (Infinitable e)
@@ -100,8 +100,8 @@ adjacencyList' (e:es) v vls
     | firstVertex e == v = adjacencyList' es v (secondVertex e : vls)
     | secondVertex e == v = adjacencyList' es v (firstVertex e : vls)
     | otherwise = adjacencyList' es v vls
-    where secondVertex edge = (snd . fst) edge
-          firstVertex edge = (fst . fst) edge
+    where secondVertex = snd . fst
+          firstVertex = fst . fst
 
 reverseEdge :: ((a,a),b) -> ((a,a),b)
 reverseEdge ((v1,v2),x) = ((v2,v1),x)
@@ -110,7 +110,7 @@ reverseEdges :: Graph v e -> [((v,v),e)]
 reverseEdges g = map reverseEdge $ edges g
 
 allEdges :: Graph v e -> [((v,v),e)]
-allEdges g = if (directed g) then edges g else (edges g) ++ (reverseEdges g)
+allEdges g = if directed g then edges g else edges g ++ reverseEdges g
 
 
 {-----====== Pretty-printing ======-----}
@@ -118,11 +118,11 @@ allEdges g = if (directed g) then edges g else (edges g) ++ (reverseEdges g)
 showWeightMatrix :: (Num e,Ord v,Show v, Show e) => Graph v (Infinitable e) -> IO ()
 showWeightMatrix g = do
     putStr "   "
-    mapM_ (\x -> printf "%-3v" $ show x) (vertices g)
-    mapM_ (\x -> do putStr "\n" >> (printf "%-3v" (show x)) >> printMatrixRow g x ) (vertices g)
+    mapM_ (printf "%-3v" . show) (vertices g)
+    mapM_ (\x -> putStr "\n" >> printf "%-3v" (show x) >> printMatrixRow g x ) (vertices g)
     putStr "\n"
 
 printMatrixRow :: (Num e, Ord v, Show v, Show e) => Graph v (Infinitable e) -> v -> IO ()
-printMatrixRow g v = mapM_ (\v2 -> printf "%-3v" $ show $ w v v2) (vertices g)
+printMatrixRow g v = mapM_ (printf "%-3v" . show . w v) (vertices g)
     where wts = weightMatrix g
           w u1 u2 = fromJust $ M.lookup (u1,u2) wts
