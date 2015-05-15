@@ -61,7 +61,7 @@ library
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <4.9, containers >=0.5 && <0.6
+  build-depends:       base >=4.7 && <=4.9, containers >=0.5 && <=0.6
 
   --ghc-options:         -outputdir ./.ghc_clutter
   
