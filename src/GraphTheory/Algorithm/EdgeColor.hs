@@ -1,22 +1,20 @@
 module GraphTheory.Algorithm.EdgeColor where
-import GraphTheory.Graph (Graph, vertices, edges)
+import GraphTheory.Graph (ColoredGraph, c_vertices, c_edges)
 import Data.List ((\\))
 import Debug.Trace (trace)
 
-color :: (Eq e, Eq v, Show e, Show v) => Graph v e -> Graph v e
-color g = inductLoop g (g {vertices = fstEdgeEndpoints, edges = [fstEdge]})
-    where fstEdge = head $ edges g
-          fstEdgeEndpoints = [fst . fst $ fstEdge, snd . fst $ fstEdge]
+color :: (Eq w, Eq v, Eq c, Show w, Show v, Show c) => ColoredGraph v w c -> ColoredGraph v w c
+color g = inductLoop g g'
+    where g' = g {c_vertices = [u,v] , c_edges = [fstEdge]}
+          fstEdge@((u,v),_,c) = head $ c_edges g
 
-inductLoop :: (Eq e, Eq v, Show e, Show v) => Graph v e -> Graph v e -> Graph v e
+inductLoop :: (Eq w, Eq v, Eq c, Show w, Show v, Show c) => ColoredGraph v w c -> ColoredGraph v w c -> ColoredGraph v w c
 inductLoop g g'
-    | (length . edges) g == (length . edges) g' = g'
-    | otherwise = trace (show g') $ inductLoop g nextg'
-    where nextg' = g' {edges = nextg'_edges, vertices = nextg'_vertices}
-          newg'_edge = head $ (edges g) \\ (edges g')
-          nextg'_edges = newg'_edge : (edges g')
-          nextg'_vertices = foldl vertCheck (vertices g') [v1,v2]
-                where v1 = fst . fst $ newg'_edge
-                      v2 = snd . fst $ newg'_edge
-                      vertCheck oldVs newV = if elem newV oldVs then oldVs
+    | (length . c_edges) g == (length . c_edges) g' = g'
+    | otherwise = trace (show $ c_edges g') $ inductLoop g nextg'
+    where nextg' = g' {c_edges = g'_edges, c_vertices = g'_vertices}
+          edgeToAdd@((v1,v2),_,_) = head $ (c_edges g) \\ (c_edges g')
+          g'_edges = edgeToAdd : (c_edges g')
+          g'_vertices = foldl vertCheck (c_vertices g') [v1,v2]
+                where vertCheck oldVs newV = if elem newV oldVs then oldVs
                                              else newV:oldVs
