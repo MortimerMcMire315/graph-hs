@@ -102,6 +102,15 @@ weightMatrix g = foldl (\m e -> M.update (\_ -> Just $ snd e) (fst e) m) infMatr
     where infMatrix = M.fromList [((v1,v2), if v1 == v2 then Regular 0 else PositiveInfinity) | v1 <- vertices g, v2 <- vertices g]
 
 
+incidentEdgesC :: (Eq v) => ColoredGraph v e c -> v -> [ColoredEdge v e c]
+incidentEdgesC g v = incidentEdgesC' (c_edges g) v []
+
+incidentEdgesC' :: (Eq v) => [ColoredEdge v e c] -> v -> [ColoredEdge v e c] -> [ColoredEdge v e c]
+incidentEdgesC' [] _ els = els
+incidentEdgesC' (e@((v1,v2),_,_):es) v els
+    | (v1 == v) || (v2 == v) = incidentEdgesC' es v (e:els)
+    | otherwise = incidentEdgesC' es v els
+
 {-----====== Vertex functions ======-----}
 
 -- Create an adjacency list for a given vertex in O(|E|).
@@ -116,6 +125,17 @@ adjacencyList' (e:es) v vls
     | otherwise = adjacencyList' es v vls
     where secondVertex = snd . fst
           firstVertex = fst . fst
+
+adjacencyListC :: (Eq v) => ColoredGraph v e c -> v -> [v]
+adjacencyListC g v = adjacencyListC' (c_edges g) v []
+
+adjacencyListC' :: (Eq v) => [ColoredEdge v e c] -> v -> [v] -> [v]
+adjacencyListC' [] _ vls = vls
+adjacencyListC' (((v1,v2),_,_):es) v vls
+    | v1 == v = adjacencyListC' es v (v2 : vls)
+    | v2 == v = adjacencyListC' es v (v1 : vls)
+    | otherwise = adjacencyListC' es v vls
+
 
 reverseEdge :: ((a,a),b) -> ((a,a),b)
 reverseEdge ((v1,v2),x) = ((v2,v1),x)
