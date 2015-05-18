@@ -5,17 +5,34 @@ import Text.Printf (printf)
 import Data.Maybe (fromJust)
 
 {------===== Data types =====--------}
-type Edge v e = ((v,v),e)
-data Graph v e = Graph {vertices :: [v], 
-                        edges :: [Edge v e], 
-                        directed :: Bool,
-                        weighted :: Bool} deriving (Show,Eq)
 
-type ColoredEdge v e c = ((v,v),e,c)
-data ColoredGraph v e c = ColoredGraph {c_vertices :: [v], 
-                                        c_edges :: [ColoredEdge v e c],
-                                        c_directed :: Bool,
-                                        c_weighted :: Bool} deriving (Show,Eq)
+data Edge v w d = Edge { endpoints :: (v,v),
+                         weight    :: w,
+                         edgeData  :: d } deriving (Show, Eq)
+
+type BasicEdge v w = Edge v w ()
+type ColoredEdge v w c = Edge v w c
+
+data Graph v w d = Graph { vertices :: [v],
+                           edges    :: [Edge v w d],
+                           directed :: Bool,
+                           weighted :: Bool }
+
+type BasicGraph v w = Graph v w ()
+type ColoredGraph v w c = Graph v w c
+
+--type Edge v e = ((v,v),e)
+--data Graph v e = Graph {vertices :: [v], 
+--                        edges :: [Edge v e], 
+--                        directed :: Bool,
+--                        weighted :: Bool} deriving (Show,Eq)
+--
+--type ColoredEdge v e c = ((v,v),e,c)
+--data ColoredGraph v e c = ColoredGraph {c_vertices :: [v], 
+--                                        c_edges :: [ColoredEdge v e c],
+--                                        c_directed :: Bool,
+--                                        c_weighted :: Bool} deriving (Show,Eq)
+
 
 uuGraph v e = Graph {vertices = v, edges = e, directed = False, weighted = False}
 duGraph v e = Graph {vertices = v, edges = e, directed = True,  weighted = False}
@@ -25,11 +42,13 @@ dwGraph v e = Graph {vertices = v, edges = e, directed = True,  weighted = True}
 
 {-----====== Graph building ======-----}
 
-toColored :: Graph v e -> [c] -> ColoredGraph v e c
-toColored (Graph vs es dir weight) cs = ColoredGraph vs es' dir weight
-    where es' = zipWith zipF es cs
-          zipF ((v1,v2),w) c = ((v1,v2),w,c)
+toColored :: BasicGraph v e -> [c] -> ColoredGraph v e c
+toColored g cs = g {edges = es'}
+    where es' = zipWith zipF (edges g) cs
+          zipF edge c = edge {edgeData = c}
 
+
+{--
 -- Input: Graph, list of edge weights.
 -- Output: Maybe the graph with modified weights.
 assignWeights ::  Graph v e -> [e] -> Maybe (Graph v e)
@@ -160,3 +179,4 @@ printMatrixRow :: (Num e, Ord v, Show v, Show e) => Graph v (Infinitable e) -> v
 printMatrixRow g v = mapM_ (printf "%-3v" . show . w v) (vertices g)
     where wts = weightMatrix g
           w u1 u2 = fromJust $ M.lookup (u1,u2) wts
+--}
