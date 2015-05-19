@@ -47,6 +47,10 @@ toColored g cs = g {edges = es'}
     where es' = zipWith zipF (edges g) cs
           zipF edge c = edge {edgeData = c}
 
+toColoredDefault :: BasicGraph v w -> ColoredGraph v w Integer
+toColoredDefault g = g {edges = es'}
+    where es' = map (\e -> e {edgeData = 1}) $ edges g
+
 -- Input: Graph, list of edge weights.
 -- Output: Maybe the graph with modified weights.
 assignWeights :: Graph v w c -> [w] -> Maybe (Graph v w c)
@@ -107,12 +111,13 @@ removeEdge g e
 --          return the resulting graph.
 modifyEdge :: (Eq v, Eq w) => Graph v w c -> (v,v) -> (Edge v w c -> Edge v w c) -> Maybe (Graph v w c)
 modifyEdge g toChange f
-    | null es = Nothing
+    | null es = Just g
     | endpoints x == toChange = Just $ g {edges = f x : xs}
     | (not . directed) g && (v2,v1) == toChange = Just $ g {edges = f x : xs}
     | otherwise = modifyEdge (g {edges=xs}) toChange f >>= 
                             (\g2 -> return $ g2 {edges = x : edges g2})
-    where es@(x:xs) = edges g
+    where es = edges g
+          x = head es; xs = tail es
           vs = vertices g
           (v1,v2) = endpoints x
 
@@ -122,9 +127,10 @@ setEdgeWeight :: (Eq v, Eq w) => Graph v w c -> (v,v) -> w -> Maybe (Graph v w c
 setEdgeWeight g e wt' = modifyEdge g e $ setEdgeWeight' wt'
     where setEdgeWeight' w' edge = edge { weight = w' }
 
+setEdgeColor :: (Eq v, Eq w) => Graph v w c -> ((v,v), c) -> Graph v w c
+setEdgeColor gr (e,c) = modifyEdgeUnsafe gr e (\e -> e { edgeData = c})
 
-
-weightMatrix :: (Num w, Ord v) => Graph v (Infinitable w) c -> M.Map (v,v) (Infinitable w)
+weightMatrix :: (Num w, Ord v) => Graph v (Inf w) c -> M.Map (v,v) (Inf w)
 weightMatrix g = foldl (\m e -> M.update (\_ -> Just $ weight e) (endpoints e) m) infMatrix $ allEdges g
     where infMatrix = M.fromList [((v1,v2), if v1 == v2 then Regular 0 else PositiveInfinity) | v1 <- vertices g, v2 <- vertices g]
 
@@ -182,14 +188,14 @@ highestDegree g = maximum $ (map snd) $ M.toList $ degreeMap g
 
 {-----====== Pretty-printing ======-----}
 
-showWeightMatrix :: (Num w, Ord v, Show v, Show w) => Graph v (Infinitable w) c -> IO ()
+showWeightMatrix :: (Num w, Ord v, Show v, Show w) => Graph v (Inf w) c -> IO ()
 showWeightMatrix g = do
     putStr "   "
     mapM_ (printf "%-3v" . show) (vertices g)
     mapM_ (\x -> putStr "\n" >> printf "%-3v" (show x) >> printMatrixRow g x ) (vertices g)
     putStr "\n"
 
-printMatrixRow :: (Num w, Ord v, Show v, Show w) => Graph v (Infinitable w) c -> v -> IO ()
+printMatrixRow :: (Num w, Ord v, Show v, Show w) => Graph v (Inf w) c -> v -> IO ()
 printMatrixRow g v = mapM_ (printf "%-3v" . show . w v) (vertices g)
     where wts = weightMatrix g
           w u1 u2 = fromJust $ M.lookup (u1,u2) wts

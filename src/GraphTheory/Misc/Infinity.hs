@@ -1,6 +1,9 @@
 module GraphTheory.Misc.Infinity where
 
-data Infinitable a = Regular a | NegativeInfinity | PositiveInfinity deriving Eq
+data Infinitable a = Regular a | NegativeInfinity | PositiveInfinity
+
+type InfInt = Infinitable Integer
+type Inf a = Infinitable a
 
 instance Ord a => Ord (Infinitable a) where
     compare NegativeInfinity NegativeInfinity = EQ
@@ -43,3 +46,9 @@ instance Show a => Show (Infinitable a) where
     show (Regular a) = show a
     show PositiveInfinity = "∞"
     show NegativeInfinity = "-∞"
+
+instance Eq a => Eq (Infinitable a) where
+    PositiveInfinity == PositiveInfinity = True
+    NegativeInfinity == NegativeInfinity = True
+    Regular a == Regular b = (a == b)
+    _ == _ = False
