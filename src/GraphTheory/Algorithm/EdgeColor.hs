@@ -1,40 +1,29 @@
 module GraphTheory.Algorithm.EdgeColor where
-import GraphTheory.Graph (Edge (..), Graph, vertices, edges)
+import GraphTheory.Graph (Edge (..), Graph, vertices, edges, incidentEdges, degreeMap, highestDegree)
 import Data.List ((\\))
 import qualified Data.Map as M
 import Debug.Trace (trace)
 
-deltaPlusOneColor :: (Eq w, Eq v, Eq c, Show w, Show v, Show c) => Graph v w c -> Graph v w c
+deltaPlusOneColor :: (Eq w, Eq v, Show w, Show v) => Graph v w Integer -> Graph v w Integer
 deltaPlusOneColor g = inductLoop g g'
-    where g' = g {vertices = [u,v] , edges = [fstEdge]}
-          fstEdge = head $ edges g
-          (u,v) = endpoints fstEdge
+    where g' = g {vertices = [] , edges = []}
 
-inductLoop :: (Eq w, Eq v, Eq c, Show w, Show v, Show c) => Graph v w c -> Graph v w c -> Graph v w c
-inductLoop g g'
-    | (length . edges) g == (length . edges) g' = g'
-    | otherwise = trace (show $ edges g') $ inductLoop g nextg'
-    where nextg' = g' {edges = g'_edges, vertices = g'_vertices}
-          edgeToAdd@(Edge (v1,v2) _ _) = head $ (edges g) \\ (edges g')
-          g'_edges = edgeToAdd : (edges g')
-          g'_vertices = foldl vertCheck (vertices g') [v1,v2]
+inductLoop :: (Eq w, Eq v, Show w, Show v) => Graph v w Integer -> Graph v w Integer -> Graph v w Integer
+inductLoop g gp
+    | null $ edges g = gp
+    | otherwise = {--trace (show $ edges gp) $--} inductLoop g {edges=restEdges} $ doDeltaPlusOneColor nextgp
+    where nextgp = gp {edges = gp_edges, vertices = gp_vertices}
+          (firstEdge:restEdges) = edges g
+          gp_edges = (firstEdge {edgeData = -1}) : (edges gp)
+          gp_vertices = foldl vertCheck (vertices gp) [v1,v2]
                 where vertCheck oldVs newV = if elem newV oldVs then oldVs
                                              else newV:oldVs
+                      (v1,v2) = endpoints firstEdge
 
---colorsMissingAt :: (Ord v) => Graph v e c -> v -> Integer -> [c]
---colorsMissingAt g v Δ = allColors \\ (map getColor )
---    where allColors = [1..Δ]
+colorList :: (Ord v) => Graph v w Integer -> [Integer]
+colorList g = [1..highestDegree g + 1]
 
-highestDegree :: (Ord v) => Graph v w c -> Integer
-highestDegree g = maximum $ (map snd) $ M.toList $ degreeMap g
+colorsMissingAt' :: (Ord v, Eq c) => Graph v e c -> v -> [c] -> [c]
+colorsMissingAt' g v gColors = gColors \\ (map edgeData $ incidentEdges g v)
 
-degreeMap :: (Ord v) => Graph v w c -> M.Map v Integer
-degreeMap g = degreeMap' (edges g) $ M.fromList [(v,0) | v <- vertices g]
-
-degreeMap' :: (Ord v) => [Edge v w c] -> M.Map v Integer -> M.Map v Integer
-degreeMap' [] m = m
-degreeMap' (e:es) m = degreeMap' es new_m
-    where (v1,v2) = endpoints e
-          new_m = M.update updateF v1 $ M.update updateF v2 m
-          updateF x = Just $ x + 1
-
+doDeltaPlusOneColor g = g

@@ -8,7 +8,7 @@ import Data.Maybe (fromJust)
 
 data Edge v w d = Edge { endpoints :: (v,v),
                          weight    :: w,
-                         edgeData  :: d } deriving (Show, Eq)
+                         edgeData  :: d }
 
 type BasicEdge v w = Edge v w ()
 type ColoredEdge v w c = Edge v w c
@@ -16,10 +16,22 @@ type ColoredEdge v w c = Edge v w c
 data Graph v w d = Graph { vertices :: [v],
                            edges    :: [Edge v w d],
                            directed :: Bool,
-                           weighted :: Bool } deriving (Show, Eq)
+                           weighted :: Bool } 
 
 type BasicGraph v w = Graph v w ()
 type ColoredGraph v w c = Graph v w c
+
+instance (Show v, Show w, Show d) => Show (Edge v w d) where
+    show e = show (endpoints e) ++ ": w=" ++ show (weight e) ++ "; data = " ++ show (edgeData e) ++ "\n"
+
+instance (Show v, Show w, Show d) => Show (Graph v w d) where
+    show g = directedQ ++ weightedQ ++ "graph\n" ++  "\nVertices: " ++ show (vertices g) ++
+             "\nEdges: \n" ++ show (edges g)
+             where directedQ = if directed g then "Directed " else "Undirected "
+                   weightedQ = if weighted g then "Weighted " else "Unweighted "
+
+instance (Eq v) => Eq (Edge v w d) where
+    e1 == e2 = endpoints e1 == endpoints e2
 
 
 uuGraph v w = Graph {vertices = v, edges = w, directed = False, weighted = False}
@@ -41,6 +53,14 @@ assignWeights :: Graph v w c -> [w] -> Maybe (Graph v w c)
 assignWeights g weightList@(x:xs)
     | length (edges g) /= length weightList = Nothing
     | otherwise = Just $ g {edges = zipWith (\edge w -> edge {weight = w}) (edges g) weightList}
+
+assignData :: Graph v w d -> [d] -> Maybe (Graph v w d)
+assignData g dataList@(x:xs)
+    | length (edges g) /= length dataList = Nothing
+    | otherwise = Just $ g {edges = zipWith (\edge d -> edge {edgeData = d}) (edges g) dataList}
+
+assignDataUnsafe :: Graph v w d -> [d] -> Graph v w d
+assignDataUnsafe g d = fromJust $ assignData g d
 
 -- Input: The graph and an edge
 -- Output: After checking (in O(|E|) time) to ensure that the edge isn't already present, 
@@ -101,10 +121,20 @@ setEdgeWeight g e wt' = modifyEdge g e $ setEdgeWeight' wt'
     where setEdgeWeight' w' edge = edge { weight = w' }
 
 
+
 weightMatrix :: (Num w, Ord v) => Graph v (Infinitable w) c -> M.Map (v,v) (Infinitable w)
 weightMatrix g = foldl (\m e -> M.update (\_ -> Just $ weight e) (endpoints e) m) infMatrix $ allEdges g
     where infMatrix = M.fromList [((v1,v2), if v1 == v2 then Regular 0 else PositiveInfinity) | v1 <- vertices g, v2 <- vertices g]
 
+reverseEdge :: Edge v w c -> Edge v w c
+reverseEdge e@(Edge (v1,v2) _ _) = e { endpoints=(v2,v1) }
+
+reverseEdges :: Graph v w c -> [Edge v w c]
+reverseEdges g = map reverseEdge $ edges g
+
+
+allEdges :: Graph v w c -> [Edge v w c]
+allEdges g = if directed g then edges g else edges g ++ reverseEdges g
 
 incidentEdges :: (Eq v) => Graph v w c -> v -> [Edge v w c]
 incidentEdges g v = incidentEdges' (edges g) v []
@@ -133,18 +163,20 @@ adjacencyList' (e:es) v vls
     | otherwise = adjacencyList' es v vls
     where (v1,v2) = endpoints e
 
-reverseEdge :: Edge v w c -> Edge v w c
-reverseEdge e@(Edge (v1,v2) _ _) = e { endpoints=(v2,v1) }
+-- Return a map from vertices to their degrees.
+degreeMap :: (Ord v) => Graph v w c -> M.Map v Integer
+degreeMap g = degreeMap' (edges g) $ M.fromList [(v,0) | v <- vertices g]
 
+degreeMap' :: (Ord v) => [Edge v w c] -> M.Map v Integer -> M.Map v Integer
+degreeMap' [] m = m
+degreeMap' (e:es) m = degreeMap' es new_m
+    where (v1,v2) = endpoints e
+          new_m = M.update updateF v1 $ M.update updateF v2 m
+          updateF x = Just $ x + 1
 
-reverseEdges :: Graph v w c -> [Edge v w c]
-reverseEdges g = map reverseEdge $ edges g
-
-
-allEdges :: Graph v w c -> [Edge v w c]
-allEdges g = if directed g then edges g else edges g ++ reverseEdges g
-
-
+-- Return the highest-degree vertex in the graph
+highestDegree :: (Ord v) => Graph v w c -> Integer
+highestDegree g = maximum $ (map snd) $ M.toList $ degreeMap g
 
 {-----====== Pretty-printing ======-----}
 
