@@ -115,6 +115,8 @@ modifyEdge g toChange f
     where es@(x:xs) = edges g
           vs = vertices g
           (v1,v2) = endpoints x
+
+modifyEdgeUnsafe g toChange f = fromJust $ modifyEdge g toChange f
         
 setEdgeWeight :: (Eq v, Eq w) => Graph v w c -> (v,v) -> w -> Maybe (Graph v w c)
 setEdgeWeight g e wt' = modifyEdge g e $ setEdgeWeight' wt'
