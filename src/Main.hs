@@ -23,11 +23,11 @@ k5colored = makeColorGraph [1, 2, 3, 4, 5] [((1,2),1),((1,3),1),((1,4),1),
                                            ((4,5),1)] 
 
 
---main = do
---    putStrLn $ "g = " ++ show g1
---    let u = head $ vertices g1
---    putStrLn "\nWeight matrix:"
---    showWeightMatrix g1
---    putStr "\n"
---    putStr "Dijkstra algorithm for u=0:"
---    showDijkstra g1 u
+main = do
+    putStrLn $ "g = " ++ show g1
+    let u = head $ vertices g1
+    putStrLn "\nWeight matrix:"
+    showWeightMatrix g1
+    putStr "\n"
+    putStr "Dijkstra algorithm for u=0:"
+    showDijkstra g1 u
