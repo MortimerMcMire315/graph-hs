@@ -52,7 +52,11 @@ cabal-version:       >=1.10
 library
   -- Modules exported by the library.
   hs-source-dirs: src/
-  exposed-modules:     GraphTheory.Algorithm.Dijkstra, GraphTheory.Graph, GraphTheory.SpecialGraphs, GraphTheory.Misc.Infinity
+  exposed-modules:      GraphTheory.Graph, 
+                        GraphTheory.SpecialGraphs, 
+                        GraphTheory.Misc.Infinity,
+                        GraphTheory.Algorithm.Dijkstra,
+                        GraphTheory.Algorithm.EdgeColor
   
   -- Modules included in this library but not exported.
   -- other-modules:       

@@ -5,8 +5,9 @@ import qualified Data.Map as M
 import Data.Maybe (fromJust)
 import Debug.Trace (trace)
 
---This depth-first search is strange and (probably) slow. 
---TODO: fix when not working under deadline
+-- This depth-first search is strange, bad, and (probably) slow. It works well
+-- enough for now.  
+-- TODO: do this better
 
 getComponents :: (Ord v) => Graph v w c -> [(v,Integer)]
 getComponents g = M.toList $ depthFirstSearchSCC g

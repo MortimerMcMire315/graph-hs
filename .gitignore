@@ -17,4 +17,10 @@ cabal.sandbox.config
 *.swp
 *.swo
 *.swn
+*.ptb
+*.tex
+*.log
+*.aux
+*.fmt
+*.pdf
 Main

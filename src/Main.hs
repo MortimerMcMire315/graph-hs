@@ -33,14 +33,16 @@ g4 = uuGraph [0, 1, 2, 3, 4,5,6,7,8,9,10] $ toBasicEdgeList [((0,1),1),((0,2),1)
 --    putStrLn . show $ isValidColoring d
 
 main = do
+    putStrLn "Testing on graphs with 80 vertices and 1000 edges."
     g <- getStdGen
     foldM foldFunc g [1..100] 
+    putStr ""
 
 foldFunc gen _ = do
     let (_, newg) = next gen 
-    let r = randomGraph gen 30 240
+    let r = randomGraph gen 80 1000
     let str = if isValidColoring $ deltaPlusOneColor r
-              then (show . head $ edges r) ++ " " ++ show True
-              else show False ++ "\n" ++ (show r)
-    putStrLn str
+              then show "Test passed. First edge: " ++ (show . head $ edges r)
+              else show "FAILED: " ++ "\n" ++ (show r)
+    putStr str
     return newg
