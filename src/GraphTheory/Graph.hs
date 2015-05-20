@@ -3,6 +3,7 @@ import GraphTheory.Misc.Infinity
 import qualified Data.Map as M
 import Text.Printf (printf)
 import Data.Maybe (fromJust)
+import System.Random (randomR, StdGen)
 
 {------===== Data types =====--------}
 
@@ -102,6 +103,28 @@ removeEdge g e
     where es = edges g
           (x:xs) = es
           (v1,v2) = endpoints x
+
+randomGraph :: StdGen -> Integer -> Integer -> Graph Integer Integer Integer
+randomGraph gen vn en 
+    | vn < 0 || en < 0 = error "Bad randomGraph input: negative vertices or edges"
+    | en > quot (vn*(vn-1)) 2 = error "Bad randomGraph input: too many edges"
+    | otherwise = randomGraph' gen (makeColorGraph [1..vn] []) vn en
+
+randomGraph' :: StdGen -> Graph Integer Integer Integer -> Integer -> Integer -> Graph Integer Integer Integer
+randomGraph' gen g vn en
+    | en == 0 = g
+    | elem next_edge (map endpoints $ edges g) ||
+      elem (v2,v1) (map endpoints $ edges g) = randomGraph' gen'' g vn en
+    | v1 == v2 = randomGraph' gen'' g vn en
+    | otherwise = randomGraph' gen'' g {edges = (Edge next_edge 1 1 : edges g) } vn (en - 1)
+    where (v1, gen') = randomR (1,vn) gen
+          (v2, gen'') = randomR (1,vn) gen'
+          next_edge = (v1,v2)
+                      
+makeColorGraph :: [v] -> [(v,v)] -> ColoredGraph v Integer Integer
+makeColorGraph vs es = Graph vs coloredEdgeList False False
+    where coloredEdgeList = zipWith zipF es $ take (length es) [1,1..]
+          zipF (v1,v2) c = Edge (v1,v2) 1 c
 
 {-----====== Edge functions ======-----}
 

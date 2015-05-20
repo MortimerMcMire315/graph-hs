@@ -11,15 +11,18 @@ import Data.Maybe (fromJust)
 
 {-----====== Setup ======-----}
 deltaPlusOneColor :: (Ord v, Ord w, Eq w, Eq v, Show w, Show v, Num w) => 
-                     Graph v (Inf w) Integer -> Graph v (Inf w) Integer
+                     Graph v w Integer -> Graph v w Integer
 deltaPlusOneColor g = inductLoop g g'
     where g' = g {vertices = [] , edges = []}
 
 inductLoop :: (Ord v, Ord w, Eq w, Eq v, Show w, Show v, Num w) => 
-              Graph v (Inf w) Integer -> Graph v (Inf w) Integer -> Graph v (Inf w) Integer
+              Graph v w Integer -> Graph v w Integer -> Graph v w Integer
 inductLoop g gp
     | null $ edges g = gp
-    | otherwise = inductLoop g {edges=restEdges} $ doDeltaPlusOneColor nextgp
+    | otherwise = --inductLoop g {edges=restEdges} $ doDeltaPlusOneColor nextgp
+                  if isValidColoring (doDeltaPlusOneColor nextgp) 
+                  then {--trace (show $ doDeltaPlusOneColor nextgp) $ --} inductLoop g {edges=restEdges} $ doDeltaPlusOneColor nextgp
+                  else error "WHOOP"
     where nextgp = gp {edges = gp_edges, vertices = gp_vertices}
           (firstEdge:restEdges) = edges g
           gp_edges = (firstEdge {edgeData = -1}) : (edges gp)
@@ -31,7 +34,7 @@ inductLoop g gp
 
 {-----====== Substance (in sort-of execution order) ======-----}
 doDeltaPlusOneColor :: (Ord v, Ord w, Eq w, Show w, Show v, Num w) => 
-                       Graph v (Inf w) Integer -> Graph v (Inf w) Integer
+                       Graph v w Integer -> Graph v w Integer
 doDeltaPlusOneColor g = if (not . null) missingAtBoth 
                         then easyColor g (head missingAtBoth) 
                         else hardColor g (head $ edges g) gColors
@@ -41,13 +44,13 @@ doDeltaPlusOneColor g = if (not . null) missingAtBoth
           gColors = colorList g
 
 
-easyColor :: Graph v (Inf w) Integer -> Integer -> Graph v (Inf w) Integer
+easyColor :: Graph v w Integer -> Integer -> Graph v w Integer
 easyColor g c = g {edges = (new_e:es)}
     where (e:es) = edges g
           new_e = e {edgeData = c}
 
 hardColor :: (Ord v, Ord w, Eq v, Eq w, Show v, Show w, Num w) => 
-             Graph v (Inf w) Integer -> Edge v (Inf w) Integer -> [Integer] -> Graph v (Inf w) Integer
+             Graph v w Integer -> Edge v w Integer -> [Integer] -> Graph v w Integer
 hardColor g e gColors = colorSequence
     where (v0,v1) = endpoints e
           presentAt = colorsPresentAt g gColors
@@ -58,7 +61,7 @@ hardColor g e gColors = colorSequence
 
 
 makeColorSequence :: (Ord v, Ord w, Eq v, Eq w, Show v, Show w, Num w) => 
-                     Graph v (Inf w) Integer -> [Integer] ->  [Integer] -> [(v,v)] -> Graph v (Inf w) Integer
+                     Graph v w Integer -> [Integer] ->  [Integer] -> [(v,v)] -> Graph v w Integer
 makeColorSequence g gColors cSeq eSeq 
     | null $ vertexWithColor c_i = hcCase1 g cSeq eSeq
     | elem vk (map snd eSeq) = hcCase2 g cSeq eSeq vk
@@ -70,17 +73,17 @@ makeColorSequence g gColors cSeq eSeq
           vk = head $ vertexWithColor c_i
           next_cSeq = cSeq ++ [(head $ colorsMissingAt g gColors vi_plus_1)]
           next_eSeq = eSeq ++ [(v0, vi_plus_1)]
-          traceStuff = "" -- "\n\nRECURSE!!!\n" ++ (show g) ++ "\n\ncSeq=" ++ (show cSeq) ++ "; eSeq=" ++ (show eSeq) ++ "; vk=" ++ (show $ vertexWithColor c_i)
+          --traceStuff = "\n\nRECURSE!!!\n" ++ (show g) ++ "\n\ncSeq=" ++ (show cSeq) ++ "; eSeq=" ++ (show eSeq) ++ "; vk=" ++ (show $ vertexWithColor c_i)
 
 
 hcCase1 :: (Show v, Show w, Eq v, Eq w, Num w) => 
-           Graph v (Inf w) Integer -> [Integer] -> [(v,v)] -> Graph v (Inf w) Integer
+           Graph v w Integer -> [Integer] -> [(v,v)] -> Graph v w Integer
 hcCase1 g cSeq eSeq = foldl setEdgeColor g (zip eSeq (tail cSeq)) --Use tail so that C0 doesn't match up with (v0, v1).
     where buildEdge (v1,v2) cn = Edge (v1,v2) 1 cn
 
 
 hcCase2 :: (Show v, Show w, Ord v, Ord w, Eq v, Eq w, Num w) => 
-           Graph v (Inf w) Integer -> [Integer] -> [(v,v)] -> v -> Graph v (Inf w) Integer
+           Graph v w Integer -> [Integer] -> [(v,v)] -> v -> Graph v w Integer
 hcCase2 g cSeq eSeq vk = kempeBranch recoloredG cSeq eSeq vk
     where recoloredG = setEdgeColor (setEdgeColors g zipped) ((v0,vk),-1)
           v0 = (fst . head) eSeq
@@ -90,33 +93,45 @@ hcCase2 g cSeq eSeq vk = kempeBranch recoloredG cSeq eSeq vk
           tracestuff = show cSeq ++ " " ++ show eSeq ++ " " ++ show vk ++ " " ++ show eSeqBeforevk ++ "\n" ++ show recoloredG
 
 
-{--
 kempeBranch :: (Show v, Show w, Ord v, Ord w, Eq v, Eq w, Num w) => 
-               Graph v (Inf w) Integer -> [Integer] -> [(v,v)] -> v -> Graph v (Inf w) Integer
+               Graph v w Integer -> [Integer] -> [(v,v)] -> v -> Graph v w Integer
 kempeBranch g cSeq eSeq vk = if notElem v0 (map fst $ h vk) && notElem v0 (map snd $ h vk)
-                             then trace traceStuff $ branchA g (h vk) c0 cj v0 vk
-                             else error "BRANCH B" -- branchB g (h vj) c0 cj cSeq eSeq v0 vk
+                             then {-- trace traceStuff $ --} branchA g (h vk) c0 cj v0 vk
+                             else trace "BRANCH B" $ branchB g (h vj) c0 cj cSeq eSeq v0 vk
     where v0 = (fst . head) eSeq; vj = (snd . last) eSeq 
           c0 = head cSeq; cj = last cSeq
-          kempe = kempeSubgraph g c0 cj
-          kempeComponentVertices v = 
+          h = kempeCompEdges g c0 cj
           h_vk = h vk; h_vj = h vj;
           traceStuff = ("\n\ncSeq =" ++ (show cSeq) ++ "\neSeq = " ++ (show eSeq) ++ "\nv0 = " ++ (show v0) ++ "\nvk = " ++ (show vk) ++
                         "\nvj = " ++ (show vj) ++ "\nC0 = " ++ (show c0) ++ "\nCj = " ++ (show cj) ++ 
-                        "\nKempe subgraph = " ++ (show kempe) ++ "\nHvj = " ++ (show h_vj) ++ "\nHvk = " ++ (show h_vk) ++ "\n" ++ (show g))
-          --}
-                       
-branchA g hvk c0 cj v0 vk = setEdgeColor (interchangeColors g hvk c0 cj) ((v0,vk),c0)
+                        "\nKempe subgraph = " ++ (show $ kempeSubgraph g c0 cj) ++ "\nHvj = " ++ (show h_vj) ++ "\nHvk = " ++ (show h_vk) ++ "\n")
 
-branchB :: (Eq v, Eq w) => Graph v w Integer -> [(v,v)] -> Integer -> Integer -> [Integer] -> [(v,v)] -> v -> v -> Graph v w Integer
-branchB g hvj c0 cj cSeq eSeq v0 vk = if (length cSeq_end) /= (length eSeq_end) then error "WHOA"
+--Return the edges in the kempe component characterized by the given vertex
+kempeCompEdges :: (Show v, Show w, Ord v, Ord w, Eq v, Eq w, Num w) => 
+                  Graph v w Integer -> Integer -> Integer -> v -> [(v,v)]
+kempeCompEdges g c0 cj vert = map endpoints $ filter kempeFilter (edges kempe)
+    where kempeFilter e = let k = kempeCompVertices vert; (v1,v2) = endpoints e 
+                          in (elem v1 k && elem v2 k)
+          kempeCompVertices vert = map fst $ filter (\t -> snd t == componentIndex vert) kempeComponents
+          componentIndex vert = snd . head $ filter (\t -> fst t == vert) kempeComponents 
+          kempeComponents = getComponents kempe
+          kempe = kempeSubgraph g c0 cj
+
+                       
+branchA g hvk c0 cj v0 vk = trace "BRANCH A:\n" result
+    where result = setEdgeColor (interchangeColors g hvk c0 cj) ((v0,vk),c0)
+
+branchB :: (Show w, Show v, Eq v, Eq w) => Graph v w Integer -> [(v,v)] -> Integer -> Integer -> [Integer] -> [(v,v)] -> v -> v -> Graph v w Integer
+branchB g hvj c0 cj cSeq eSeq v0 vk = if (length cSeq_end) /= (length eSeq_end) then error errorMsg
                                       else setEdgeColor interchanged_g ((v0,vj),c0)
     where k = fromJust $ elemIndex vk (map snd eSeq)
           vj = (snd . last) eSeq
-          cSeq_end = init $ drop k cSeq
-          eSeq_end = init $ drop (k-1) eSeq
+          cSeq_end = init $ drop (k + 1) cSeq
+          eSeq_end = init $ drop k eSeq
           recolored_g = setEdgeColors g (zip eSeq_end cSeq_end)
           interchanged_g = interchangeColors recolored_g hvj c0 cj
+          errorMsg = ("eSeq: " ++ show eSeq ++ " ; cSeq: " ++ show cSeq ++ " ; eSeq_end: " ++ show eSeq_end ++ " ; cSeq_end: " ++ 
+                      show cSeq_end ++ "\nvk: " ++ show vk ++ "k: " ++ show k)
 
 {-----====== Helpers ======-----}
 otherVertex :: (Eq v) => v -> (v,v) -> v
@@ -131,7 +146,7 @@ colorsMissingAt g gColors v = gColors \\ (map edgeData $ incidentEdges g v)
 colorsPresentAt :: (Ord v, Eq c) => Graph v e c -> [c] -> v -> [c]
 colorsPresentAt g gColors v = intersect gColors (map edgeData $ incidentEdges g v)
 
-kempeSubgraph :: Graph v (Inf w) Integer -> Integer -> Integer -> Graph v (Inf w) Integer
+kempeSubgraph :: Graph v w Integer -> Integer -> Integer -> Graph v w Integer
 kempeSubgraph g c1 c2 = g {edges = filter (\e -> let c = edgeData e in c == c1 || c == c2) $ edges g}
 
 interchangeColors g componentEdgeList c1 c2 = foldl setColor g componentEdgeList
