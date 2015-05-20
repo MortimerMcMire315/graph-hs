@@ -1,9 +1,7 @@
--- COMPLETE BIPARTITE ON 5 AND 11 FAILS
-
 module GraphTheory.Algorithm.EdgeColor where
 
 import GraphTheory.Graph (Edge (..), Graph, vertices, edges, incidentEdges, degreeMap, highestDegree, adjacencyList, modifyEdgeUnsafe, setEdgeColor)
-import GraphTheory.Algorithm.Dijkstra (dijkstra)
+import GraphTheory.Algorithm.DFS (getComponents)
 import Data.List ((\\), intersect, elemIndex, nub)
 import qualified Data.Map as M
 import Debug.Trace (trace)
@@ -92,20 +90,21 @@ hcCase2 g cSeq eSeq vk = kempeBranch recoloredG cSeq eSeq vk
           tracestuff = show cSeq ++ " " ++ show eSeq ++ " " ++ show vk ++ " " ++ show eSeqBeforevk ++ "\n" ++ show recoloredG
 
 
+{--
 kempeBranch :: (Show v, Show w, Ord v, Ord w, Eq v, Eq w, Num w) => 
                Graph v (Inf w) Integer -> [Integer] -> [(v,v)] -> v -> Graph v (Inf w) Integer
-kempeBranch g cSeq eSeq vk = if not $ elem v0 (map fst $ h vk) 
-                             then branchA g (h vk) c0 cj v0 vk
+kempeBranch g cSeq eSeq vk = if notElem v0 (map fst $ h vk) && notElem v0 (map snd $ h vk)
+                             then trace traceStuff $ branchA g (h vk) c0 cj v0 vk
                              else error "BRANCH B" -- branchB g (h vj) c0 cj cSeq eSeq v0 vk
     where v0 = (fst . head) eSeq; vj = (snd . last) eSeq 
           c0 = head cSeq; cj = last cSeq
           kempe = kempeSubgraph g c0 cj
-          h vx = map (mapFunc vx) $ (filter (\x -> (snd x /= PositiveInfinity) && (fst x /= vx) ) $ dijkstra kempe vx)
-          mapFunc vx (vertex,weight) = (vx,vertex)
+          kempeComponentVertices v = 
           h_vk = h vk; h_vj = h vj;
           traceStuff = ("\n\ncSeq =" ++ (show cSeq) ++ "\neSeq = " ++ (show eSeq) ++ "\nv0 = " ++ (show v0) ++ "\nvk = " ++ (show vk) ++
                         "\nvj = " ++ (show vj) ++ "\nC0 = " ++ (show c0) ++ "\nCj = " ++ (show cj) ++ 
                         "\nKempe subgraph = " ++ (show kempe) ++ "\nHvj = " ++ (show h_vj) ++ "\nHvk = " ++ (show h_vk) ++ "\n" ++ (show g))
+          --}
                        
 branchA g hvk c0 cj v0 vk = setEdgeColor (interchangeColors g hvk c0 cj) ((v0,vk),c0)
 

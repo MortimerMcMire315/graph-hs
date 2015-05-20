@@ -4,7 +4,8 @@ import GraphTheory.Graph
 import GraphTheory.SpecialGraphs
 import GraphTheory.Misc.Infinity (Infinitable (..), InfInt)
 import GraphTheory.Algorithm.Dijkstra (dijkstra, showDijkstra)
-import GraphTheory.Algorithm.EdgeColor
+import GraphTheory.Algorithm.DFS
+--import GraphTheory.Algorithm.EdgeColor
 
 
 g1 :: BasicGraph Integer InfInt
@@ -21,9 +22,8 @@ makeColorGraph vs es = Graph vs coloredEdgeList False False
 k5 = complete 5
 
 g4 :: BasicGraph Integer InfInt
-g4 = uuGraph [0, 1, 2, 3, 4] $ toBasicEdgeList [((0,1),1),((0,2),3),((1,2),9),((3,4),1)]
-
-
+g4 = uuGraph [0, 1, 2, 3, 4,5,6,7,8,9,10] $ toBasicEdgeList [((0,1),1),((0,2),1),((1,2),1),((3,4),1),
+                                                             ((5,6),1),((0,6),1),((8,9),1),((9,10),1)]
 
 main = do
     putStrLn $ "g = " ++ show g1
