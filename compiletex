@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#lhs2TeX-hl -o EdgeColor.fmt ../EdgeColor.lhs
+##cp EdgeColor.fmt /home/atticus/.cabal/share/x86_64-linux-ghc-7.10.1/lhs2tex-1.19/
+
+if [ ! -d tex ]; then
+    mkdir tex
+fi
+
+LHSFILES=$(find . | grep \.lhs)
+
+for f in $LHSFILES; do
+    FILE=$(basename $f .lhs)
+    lhs2TeX $f > tex/${FILE}.tex || exit 1
+    cd tex
+    pdflatex ${FILE}.tex || exit 1
+done
+rm *.aux *.log *.ptb

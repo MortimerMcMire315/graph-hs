@@ -1,6 +1,0 @@
-#!/bin/bash
-
-#lhs2TeX-hl -o EdgeColor.fmt ../EdgeColor.lhs
-##cp EdgeColor.fmt /home/atticus/.cabal/share/x86_64-linux-ghc-7.10.1/lhs2tex-1.19/
-lhs2TeX ../EdgeColor.lhs > EdgeColor.tex
-pdflatex EdgeColor.tex
