@@ -4,12 +4,31 @@ if [ ! -d tex ]; then
     mkdir tex
 fi
 
-LHSFILES=$(find . | grep \.lhs)
+cd tex
+LHSFILES=$(find .. | grep -E '\.lhs$')
 
 for f in $LHSFILES; do
     FILE=$(basename $f .lhs)
-    lhs2TeX $f > tex/${FILE}.tex || exit 1
-    cd tex
-    pdflatex ${FILE}.tex || exit 1
+    echo "Processing ${FILE}.lhs..."
+
+    echo "===> Converting ${FILE}.lhs to ${FILE}.tex with lhs2TeX."
+    lhs2TeX $f > ${FILE}.tex 2> .lhs2tex.err
+    if [ ! $? -eq 0 ]; then
+        cd ..
+        echo -e "===> \e[1;31mERROR:\e[1;0m lhs2tex encountered an error while processing ${FILE}.lhs. Check tex/.lhs2tex.err for more information."
+        exit 1
+    fi
+
+    echo "===> Converting ${FILE}.tex to ${FILE}.pdf with pdflatex."
+    pdflatex -halt-on-error ${FILE}.tex > pdflatex.log 2> .pdflatex.err
+    if [ ! $? -eq 0 ]; then
+        cd ..
+        echo -e "===> \e[1;31mERROR:\e[1;0m pdflatex encountered an error while processing ${FILE}.tex. Check tex/.pdflatex.err for more information."
+        exit 1
+    fi
+
+    echo -e "===> \e[1;32mSUCCESS:\e[1;0m Converted ${FILE}.lhs to ${FILE}.pdf. "
+
 done
-rm *.aux *.log *.ptb
+rm *.{aux,log,ptb}
+cd ..
