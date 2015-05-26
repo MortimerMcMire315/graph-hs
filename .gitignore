@@ -22,6 +22,4 @@ cabal.sandbox.config
 *.log
 *.aux
 *.fmt
-*.pdf
 Main
-tex/*
