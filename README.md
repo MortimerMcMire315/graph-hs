@@ -2,6 +2,7 @@ graph-hs
 ========
 A purely functional library for dealing with graph theory problems in Haskell.
 
+
 Installation
 ------------
 1. Download the [Haskell Platform](https://www.haskell.org/) or install it using a package manager.
