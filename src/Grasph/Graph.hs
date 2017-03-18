@@ -4,6 +4,7 @@ import qualified Data.Map as M
 import Text.Printf (printf)
 import Data.Maybe (fromJust)
 import System.Random (randomR, StdGen)
+import Data.List (nub)
 
 {------===== Data types =====--------}
 
@@ -83,6 +84,19 @@ addEdge g e
     where (v1,v2) = endpoints e
           vs = vertices g
           es = edges g
+
+addEdgeAndVerts :: (Eq v, Eq w, Eq c) => Graph v w c -> Edge v w c -> Graph v w c
+addEdgeAndVerts g e
+    | directed g = if e `elem` es
+                   then g'
+                   else g' {edges = e:es}
+    | (not . directed) g = if elem e es || elem (reverseEdge e) es
+                           then g'
+                           else g' {edges = e:es}
+    where (v1,v2) = endpoints e
+          vs = vertices g
+          es = edges g
+          g' = g {vertices = nub $ v1:v2:vs}
 
 -- Input: The graph and an edge
 -- Output: The graph with the edge added in O(1). Duplicate edges could occur

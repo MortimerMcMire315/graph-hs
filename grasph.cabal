@@ -22,6 +22,7 @@ library
                      , Grasph.Algorithm.Dijkstra
                      , Grasph.Algorithm.EdgeColor
                      , Grasph.Algorithm.DFS
+                     , Grasph.Algorithm.MWST
   build-depends:       base >= 4.7 && < 5
                      , containers >= 0.5
                      , random >= 1.1
