@@ -1,5 +1,5 @@
-module GraphTheory.Graph  where
-import GraphTheory.Misc.Infinity
+module Grasph.Graph  where
+import Grasph.Misc.Infinity
 import qualified Data.Map as M
 import Text.Printf (printf)
 import Data.Maybe (fromJust)
@@ -17,7 +17,7 @@ type ColoredEdge v w c = Edge v w c
 data Graph v w d = Graph { vertices :: [v],
                            edges    :: [Edge v w d],
                            directed :: Bool,
-                           weighted :: Bool } 
+                           weighted :: Bool }
 
 type BasicGraph v w = Graph v w ()
 type ColoredGraph v w c = Graph v w c
@@ -68,14 +68,14 @@ assignDataUnsafe :: Graph v w d -> [d] -> Graph v w d
 assignDataUnsafe g d = fromJust $ assignData g d
 
 -- Input: The graph and an edge
--- Output: After checking (in O(|E|) time) to ensure that the edge isn't already present, 
+-- Output: After checking (in O(|E|) time) to ensure that the edge isn't already present,
 --         return (maybe) the graph with the edge added.
 
 addEdge :: (Eq v, Eq w, Eq c) => Graph v w c -> Edge v w c -> Maybe (Graph v w c)
 addEdge g e
     | notElem v1 vs || notElem v2 vs = Nothing
-    | directed g = if elem e es 
-                   then Just g 
+    | directed g = if elem e es
+                   then Just g
                    else Just $ g {edges = e:es}
     | (not . directed) g = if elem e es || elem (reverseEdge e) es
                            then Just g
@@ -98,14 +98,14 @@ removeEdge g e
     | null es = Nothing
     | endpoints x == e = Just $ g {edges = xs}
     | (not . directed) g && (v2,v1) == e = Just $ g {edges = xs}
-    | otherwise = removeEdge (g {edges=xs}) e >>= 
+    | otherwise = removeEdge (g {edges=xs}) e >>=
                         (\h -> return $ h {edges = x : edges h})
     where es = edges g
           (x:xs) = es
           (v1,v2) = endpoints x
 
 randomGraph :: StdGen -> Integer -> Integer -> Graph Integer Integer Integer
-randomGraph gen vn en 
+randomGraph gen vn en
     | vn < 0 || en < 0 = error "Bad randomGraph input: negative vertices or edges"
     | en > quot (vn*(vn-1)) 2 = error "Bad randomGraph input: too many edges"
     | otherwise = randomGraph' gen (makeColorGraph [1..vn] []) vn en
@@ -116,15 +116,15 @@ randomGraph' gen g vn en
     | elem next_edge (map endpoints $ edges g) ||
       elem (v2,v1) (map endpoints $ edges g) = randomGraph' gen'' g vn en
     | v1 == v2 = randomGraph' gen'' g vn en
-    | otherwise = randomGraph' gen'' g {edges = (Edge next_edge 1 1 : edges g) } vn (en - 1)
+    | otherwise = randomGraph' gen'' g {edges = Edge next_edge 1 1 : edges g } vn (en - 1)
     where (v1, gen') = randomR (1,vn) gen
           (v2, gen'') = randomR (1,vn) gen'
           next_edge = (v1,v2)
-                      
+
 makeColorGraph :: [v] -> [(v,v)] -> ColoredGraph v Integer Integer
 makeColorGraph vs es = Graph vs coloredEdgeList False False
     where coloredEdgeList = zipWith zipF es $ take (length es) [1,1..]
-          zipF (v1,v2) c = Edge (v1,v2) 1 c
+          zipF (v1,v2) = Edge (v1,v2) 1
 
 {-----====== Edge functions ======-----}
 
@@ -137,7 +137,7 @@ modifyEdge g toChange f
     | null es = Just g
     | endpoints x == toChange = Just $ g {edges = f x : xs}
     | (not . directed) g && (v2,v1) == toChange = Just $ g {edges = f x : xs}
-    | otherwise = modifyEdge (g {edges=xs}) toChange f >>= 
+    | otherwise = modifyEdge (g {edges=xs}) toChange f >>=
                             (\g2 -> return $ g2 {edges = x : edges g2})
     where es = edges g
           x = head es; xs = tail es
@@ -145,7 +145,7 @@ modifyEdge g toChange f
           (v1,v2) = endpoints x
 
 modifyEdgeUnsafe g toChange f = fromJust $ modifyEdge g toChange f
-        
+
 setEdgeWeight :: (Eq v, Eq w) => Graph v w c -> (v,v) -> w -> Maybe (Graph v w c)
 setEdgeWeight g e wt' = modifyEdge g e $ setEdgeWeight' wt'
     where setEdgeWeight' w' edge = edge { weight = w' }
@@ -178,7 +178,7 @@ incidentEdges' (e:es) v incident
     where (v1,v2) = endpoints e
 
 toBasicEdgeList :: [((v,v),w)] -> [BasicEdge v w]
-toBasicEdgeList ls = map (\e -> Edge (fst e) (snd e) ()) ls
+toBasicEdgeList = map (\e -> uncurry Edge e ())
 
 {-----====== Vertex functions ======-----}
 
@@ -207,7 +207,7 @@ degreeMap' (e:es) m = degreeMap' es new_m
 
 -- Return the highest-degree vertex in the graph
 highestDegree :: (Ord v) => Graph v w c -> Integer
-highestDegree g = maximum $ (map snd) $ M.toList $ degreeMap g
+highestDegree g = maximum . map snd . M.toList $ degreeMap g
 
 {-----====== Pretty-printing ======-----}
 

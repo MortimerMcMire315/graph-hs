@@ -23,3 +23,4 @@ cabal.sandbox.config
 *.aux
 *.fmt
 Main
+.stack-work/

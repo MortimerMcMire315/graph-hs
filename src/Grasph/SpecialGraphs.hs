@@ -1,6 +1,6 @@
-module GraphTheory.SpecialGraphs (complete, completeBipartite) where
-import GraphTheory.Graph (Graph(..), ColoredGraph, Edge(..), uuGraph)
-import GraphTheory.Misc.Infinity
+module Grasph.SpecialGraphs (complete, completeBipartite) where
+import Grasph.Graph (Graph(..), ColoredGraph, Edge(..), uuGraph)
+import Grasph.Misc.Infinity
 
 complete :: Integer -> ColoredGraph Integer InfInt Integer
 complete n = uuGraph [1..n] [Edge (x,y) 1 1 | x <- [1..n], y <- [x..n], x /= y]

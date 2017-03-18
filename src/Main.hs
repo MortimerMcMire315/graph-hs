@@ -1,13 +1,16 @@
 module Main where
 
-import GraphTheory.Graph
-import GraphTheory.SpecialGraphs
-import GraphTheory.Misc.Infinity (Infinitable (..), InfInt)
-import GraphTheory.Algorithm.Dijkstra (dijkstra, showDijkstra)
-import GraphTheory.Algorithm.DFS
-import GraphTheory.Algorithm.EdgeColor
-import System.Random (getStdGen, next)
-import Control.Monad (foldM)
+import Grasph.Graph
+import Grasph.SpecialGraphs
+import Grasph.Misc.Infinity      ( Infinitable (..)
+                                 , InfInt          )
+import Grasph.Algorithm.Dijkstra ( dijkstra
+                                 , showDijkstra    )
+import Grasph.Algorithm.DFS
+import Grasph.Algorithm.EdgeColor
+import System.Random             ( getStdGen
+                                 , next            )
+import Control.Monad             ( foldM_          )
 
 
 g1 :: BasicGraph Integer InfInt
@@ -35,14 +38,14 @@ g4 = uuGraph [0, 1, 2, 3, 4,5,6,7,8,9,10] $ toBasicEdgeList [((0,1),1),((0,2),1)
 main = do
     putStrLn "Testing on graphs with 80 vertices and 1000 edges."
     g <- getStdGen
-    foldM foldFunc g [1..100] 
+    foldM_ foldFunc g [1..100]
     putStr ""
 
 foldFunc gen _ = do
-    let (_, newg) = next gen 
+    let (_, newg) = next gen
     let r = randomGraph gen 80 1000
     let str = if isValidColoring $ deltaPlusOneColor r
               then show "Test passed. First edge: " ++ (show . head $ edges r)
-              else show "FAILED: " ++ "\n" ++ (show r)
+              else show "FAILED: " ++ "\n" ++ show r
     putStr str
     return newg

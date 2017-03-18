@@ -1,4 +1,4 @@
-module GraphTheory.Misc.Infinity where
+module Grasph.Misc.Infinity where
 
 data Infinitable a = Regular a | NegativeInfinity | PositiveInfinity
 
@@ -26,7 +26,7 @@ instance Num a => Num (Infinitable a) where
 
     (Regular a) - (Regular b) = Regular (a - b)
     _ - _ = error "Attempted to subtract two infinite values."
-    
+
     (Regular a) * (Regular b) = Regular (a * b)
     _ * _ = error "Attempted to multiply two infinite values."
 
@@ -37,7 +37,7 @@ instance Num a => Num (Infinitable a) where
     fromInteger a = Regular (fromInteger a)
 
     signum (Regular a) = Regular (signum a)
-    
+
     abs (Regular a) = Regular (abs a)
     abs PositiveInfinity = PositiveInfinity
     abs NegativeInfinity = PositiveInfinity
@@ -50,5 +50,5 @@ instance Show a => Show (Infinitable a) where
 instance Eq a => Eq (Infinitable a) where
     PositiveInfinity == PositiveInfinity = True
     NegativeInfinity == NegativeInfinity = True
-    Regular a == Regular b = (a == b)
+    Regular a == Regular b = a == b
     _ == _ = False

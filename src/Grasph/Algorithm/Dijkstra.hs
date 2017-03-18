@@ -1,16 +1,16 @@
-module GraphTheory.Algorithm.Dijkstra where
+module Grasph.Algorithm.Dijkstra where
 
 import Data.Maybe (fromJust)
 import Data.List ((\\))
 import qualified Data.Map as M
-import GraphTheory.Misc.Infinity (Infinitable (..))
-import GraphTheory.Graph (weightMatrix, vertices, Graph)
+import Grasph.Misc.Infinity (Infinitable (..))
+import Grasph.Graph (weightMatrix, vertices, Graph)
 
 showDijkstra g u = do
     let dijkstraResult = dijkstra g u
     mapM_ (\x -> putStr "\n" >> putStr (show (fst x) ++ ": " ++ show (snd x))) dijkstraResult
     putStr "\n"
-        
+
 dijkstra :: (Ord v, Ord w, Num w, Show v, Show w) => Graph v (Infinitable w) c -> v -> [(v, Infinitable w)]
 dijkstra g u = dijkstra' g wt l [u]
     where l = M.update (\_ -> Just $ Regular 0) u $ M.fromList $ map vertWeightPair vs
