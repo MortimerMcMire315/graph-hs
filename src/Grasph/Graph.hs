@@ -74,7 +74,7 @@ assignDataUnsafe g d = fromJust $ assignData g d
 addEdge :: (Eq v, Eq w, Eq c) => Graph v w c -> Edge v w c -> Maybe (Graph v w c)
 addEdge g e
     | notElem v1 vs || notElem v2 vs = Nothing
-    | directed g = if elem e es
+    | directed g = if e `elem` es
                    then Just g
                    else Just $ g {edges = e:es}
     | (not . directed) g = if elem e es || elem (reverseEdge e) es

@@ -16,13 +16,16 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src/
   exposed-modules:     Grasph.Graph
+                     , Grasph.ArrayGraph
                      , Grasph.SpecialGraphs
                      , Grasph.Misc.Infinity
                      , Grasph.Algorithm.Dijkstra
                      , Grasph.Algorithm.EdgeColor
+                     , Grasph.Algorithm.DFS
   build-depends:       base >= 4.7 && < 5
                      , containers >= 0.5
                      , random >= 1.1
+                     , array >= 0.5
   default-language:    Haskell2010
 
 executable graphtest
