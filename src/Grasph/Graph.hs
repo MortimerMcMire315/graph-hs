@@ -72,6 +72,12 @@ assignDataUnsafe g d = fromJust $ assignData g d
 -- Output: After checking (in O(|E|) time) to ensure that the edge isn't already present,
 --         return (maybe) the graph with the edge added.
 
+edgesEqual :: (Eq v, Eq w, Eq c) => Graph v w c -> Edge v w c -> Edge v w c -> Bool
+edgesEqual g e1 e2 
+    | e1 == e2 = True
+    | (not . directed) g = reverseEdge e1 == e2
+    | otherwise = False
+
 addEdge :: (Eq v, Eq w, Eq c) => Graph v w c -> Edge v w c -> Maybe (Graph v w c)
 addEdge g e
     | notElem v1 vs || notElem v2 vs = Nothing
