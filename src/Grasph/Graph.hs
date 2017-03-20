@@ -183,9 +183,11 @@ reverseEdge e@(Edge (v1,v2) _ _) = e { endpoints=(v2,v1) }
 reverseEdges :: Graph v w c -> [Edge v w c]
 reverseEdges g = map reverseEdge $ edges g
 
-
 allEdges :: Graph v w c -> [Edge v w c]
 allEdges g = if directed g then edges g else edges g ++ reverseEdges g
+
+findEdge :: Graph v w d -> (v,v) -> Edge v w d
+findEdge g pair = head $ filter (\e -> endpoints e == pair) (edges g)
 
 incidentEdges :: (Eq v) => Graph v w c -> v -> [Edge v w c]
 incidentEdges g v = incidentEdges' (edges g) v []
